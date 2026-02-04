@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: java-producers
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+app:
+  crm:
+    base-url: http://localhost:8000    # important: localhost, not mock-apis
+  inventory:
+    base-url: http://localhost:8000    # same here
+  queues:
+    customer-data: customer_data
+    inventory-data: inventory_data
+  scheduling:
+    crm-fetch-fixed-delay-ms: 60000
+    inventory-fetch-fixed-delay-ms: 60000
+
+logging:
+  level:
+    root: INFO
+    com.example.producers: DEBUG
+

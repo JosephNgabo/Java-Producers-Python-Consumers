@@ -94,3 +94,44 @@ curl -X POST http://localhost:8000/analytics/data \
 
 These endpoints and schemas are what the Java producers and Python consumers will integrate with.
 
+### Task 2 – Java Producers (CRM & Inventory → RabbitMQ)
+
+The `java-producers` Spring Boot application:
+
+- Periodically calls:
+  - `GET http://localhost:8000/customers`
+  - `GET http://localhost:8000/products`
+- Publishes the responses as JSON messages into RabbitMQ queues:
+  - `customer_data`
+  - `inventory_data`
+- Uses **Spring Retry** to retry failed HTTP calls with exponential backoff.
+
+#### How to run the producers
+
+1. **Start infrastructure** (RabbitMQ + mock APIs):
+
+```bash
+cd "Java Producers + Python Consumers"
+docker compose up --build
+```
+
+2. **Run the Java producers**:
+
+```bash
+cd "Java Producers + Python Consumers/java-producers"
+mvn clean package
+mvn spring-boot:run
+```
+
+3. **Verify messages in RabbitMQ UI**:
+
+- Open `http://localhost:15672` (user: `guest`, password: `guest`).
+- Go to the **Queues and Streams** tab.
+- You should see queues:
+  - `customer_data`
+  - `inventory_data`
+- Their **Ready** message counts will increase as the scheduled jobs run.
+
+You can click a queue → **Get messages** to see the JSON payloads.  
+In the repository you can include a screenshot (for example `docs/rabbitmq-queues.png`) showing `customer_data` and `inventory_data` with non-zero message counts to demonstrate that the producers are working end-to-end.
+
