@@ -135,3 +135,33 @@ mvn spring-boot:run
 You can click a queue → **Get messages** to see the JSON payloads.  
 In the repository you can include a screenshot (for example `docs/rabbitmq-queues.png`) showing `customer_data` and `inventory_data` with non-zero message counts to demonstrate that the producers are working end-to-end.
 
+### Task 3 – Python Consumers (RabbitMQ → Analytics)
+
+The `python-consumers` service:
+
+- Consumes JSON messages from:
+  - `customer_data` (customer events)
+  - `inventory_data` (product/stock events)
+- Keeps an in-memory store of customers and products.
+- Builds merged `AnalyticsRecord` objects for each `(customer_id, product_id)` pair.
+- Tracks processed `(customer_id, product_id)` keys to ensure **idempotency**.
+- Sends batches of merged records to `POST /analytics/data` with retry logic.
+
+#### How to run the Python consumers
+
+In a new terminal:
+
+You should see logs such as:
+
+- `Started consumer for queue 'customer_data'`
+- `Started consumer for queue 'inventory_data'`
+- `Received customer ...`, `Received product ...`
+- `Built N analytics records from ...`
+
+#### How to verify data reaches the Analytics system
+
+In another terminal, tail the mock Analytics API logs:
+
+cd "Java Producers + Python Consumers"
+docker compose logs -f mock-apis
+POST /analytics/data HTTP/1.1" 202 Accepted
