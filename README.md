@@ -6,6 +6,14 @@ This project implements an end-to-end **integration pipeline** for an e-commerce
 - **Python** for consumer/processing services
 - **RabbitMQ** as the message broker
 
+
+
+  
+## Figure: End‑to‑end integration from CRM/Inventory → Java producers → RabbitMQ → Python consumers → Analytics
+
+<img width="1536" height="1024" alt="Architecture diagram" src="https://github.com/user-attachments/assets/1eea4d28-6550-4d85-9f85-564afcc2a3fc" />
+
+
 It is designed to demonstrate:
 
 - Reliable, scalable integrations between multiple systems
@@ -33,6 +41,7 @@ It is designed to demonstrate:
   - Periodically fetch data from CRM and Inventory.
   - Publish messages to RabbitMQ queues:
     - `customer_data`
+
     - `inventory_data`
   - Implement retry logic for failed API calls and publishing.
 - **Python Consumers**:
@@ -63,6 +72,9 @@ docker compose up --build
 Once running:
 
 - Open the interactive **OpenAPI/Swagger UI** at: `http://localhost:8000/docs`
+
+  <img width="1512" height="907" alt="Screenshot 2026-02-04 at 16 23 35" src="https://github.com/user-attachments/assets/1b51fb33-46f3-448e-a08f-9984774967f6" />
+  
 - Or use simple curl calls, for example:
 
 ```bash
@@ -114,6 +126,8 @@ The `java-producers` Spring Boot application:
 cd "Java Producers + Python Consumers"
 docker compose up --build
 ```
+<img width="1506" height="486" alt="Screenshot 2026-02-04 at 16 27 17" src="https://github.com/user-attachments/assets/7db93872-05ce-48e5-a05a-5cd5c93cedb3" />
+
 
 2. **Run the Java producers**:
 
@@ -122,6 +136,8 @@ cd "Java Producers + Python Consumers/java-producers"
 mvn clean package
 mvn spring-boot:run
 ```
+<img width="1149" height="894" alt="Screenshot 2026-02-04 at 16 29 05" src="https://github.com/user-attachments/assets/8ee75df9-219a-4723-9c31-d801af9b79b0" />
+
 
 3. **Verify messages in RabbitMQ UI**:
 
@@ -131,6 +147,8 @@ mvn spring-boot:run
   - `customer_data`
   - `inventory_data`
 - Their **Ready** message counts will increase as the scheduled jobs run.
+  
+<img width="1510" height="413" alt="Screenshot 2026-02-04 at 16 29 23" src="https://github.com/user-attachments/assets/37188b77-3309-4d16-bf44-6e0d27531fb8" />
 
 You can click a queue → **Get messages** to see the JSON payloads.  
 In the repository you can include a screenshot (for example `docs/rabbitmq-queues.png`) showing `customer_data` and `inventory_data` with non-zero message counts to demonstrate that the producers are working end-to-end.
