@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, task-* ]
+  pull_request:
+
+jobs:
+  java-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "java-producers"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Run Maven tests
+        run: mvn -B test
+
+  python-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "python-consumers"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt pytest
+
+      - name: Run pytest
+        run: |
+          source .venv/bin/activate
+          pytest
+
