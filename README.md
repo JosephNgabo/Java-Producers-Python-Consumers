@@ -185,3 +185,21 @@ The same design can be implemented fully in **Java/Spring Boot** without changin
 For the Java side, I use **JUnit 5 + Mockito** to test the Spring Boot producers in isolation. The `CrmProducerService` and `InventoryProducerService` tests mock the HTTP client (`RestTemplate`) to return sample customer/product arrays and mock the `RabbitTemplate` to verify that the correct number of messages are published to the expected queues, without calling real APIs or RabbitMQ. Additional tests simulate failures by making `RestTemplate` throw exceptions and verify that the retry logic is invoked the configured number of times before giving up, which proves the retry/backoff behaviour without flakiness from real networks.
 
 For the Python side, I use **pytest + unittest.mock**. The `analytics_client` tests patch `requests.post` so that I can assert that the client builds the correct JSON body and honours retries without hitting the real Analytics endpoint. The consumer tests construct fake customer and product messages and pass them into the handler functions, asserting that merged `AnalyticsRecord` objects are created, that idempotent keys prevent duplicates, and that the analytics client is called the expected number of times. Error paths are covered by forcing the handler to raise and checking that the message is logged and not retried endlessly. All tests can be run locally with `mvn test` for Java and `pytest` for Python, and the project is ready to be wired into a simple CI pipeline (for example a GitHub Actions workflow that runs `mvn -B test` and `pytest` on every push and collects coverage reports via JaCoCo and pytest-cov) so that regressions are caught automatically.
+
+
+### Task 7 – Bonus / Stretch Goals
+
+- **Caching API responses**:  
+  The Java producers already call the CRM and Inventory APIs in bulk on a schedule. To avoid unnecessary load when multiple runs happen in a short time window, we can introduce a lightweight cache on the producer side (e.g. Spring’s `@Cacheable` with a short TTL or a simple in‑memory map keyed by endpoint + params). This means if the same export is triggered repeatedly within the TTL, the producer will reuse the cached customer/product list instead of hitting the remote APIs again.
+
+- **Config‑driven pipelines**:  
+  Both Java and Python sides are configured via external settings instead of hard‑coding values. The Spring Boot app uses `application.yml` to define CRM/Inventory base URLs, queue names, and scheduling intervals; the Python service uses `config.py` (which can be wired to environment variables) for RabbitMQ host/port, queue names, and Analytics endpoint. Adding new systems or changing endpoints/queues becomes a config change rather than a code change.
+
+- **Logging & monitoring (Prometheus/Grafana ready)**:  
+  The Java producers include Spring Boot Actuator, which exposes health and basic metrics endpoints that can be scraped by **Prometheus** and visualized in **Grafana** (e.g. HTTP call counts, error rates, JVM metrics). The Python consumers use structured logging for each received message, merge, and analytics POST. In a production setup, these logs and metrics would be shipped to a central stack (Prometheus/Grafana, ELK, or similar) to monitor throughput, failures, and retry behavior.
+
+- **Webhook / Slack alerts on failure**:  
+  The retry logic in both Java (Spring Retry) and Python (Tenacity) already surfaces repeated failures in logs. As a next step, those error paths can call a simple webhook client (e.g. Slack incoming webhook URL) when retries are exhausted—sending a small JSON payload with the system name, queue, and error details—so on‑call engineers are notified immediately without watching logs.
+
+- **Dynamic schema / optional fields**:  
+  The mock models (both Java DTOs and Python `pydantic` models) are designed to tolerate optional fields by using nullable properties and default values. In a real multi‑system environment, the consumers would use this same pattern plus versioned models (e.g. `CustomerV1`, `CustomerV2`) and feature flags to accept evolving schemas without breaking. Unknown fields are ignored, and only the subset needed for merging into `AnalyticsRecord` is required, which keeps the pipeline robust when upstream APIs add or remove optional data.
