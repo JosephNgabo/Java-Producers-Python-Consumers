@@ -166,7 +166,7 @@ cd "Java Producers + Python Consumers"
 docker compose logs -f mock-apis
 POST /analytics/data HTTP/1.1" 202 Accepted
 
-### Scalability & Performance
+### Task 4 – Scalability & Performance
 
 This integration is designed to comfortably handle **10,000+ records per hour** by combining bulk/paginated API access with asynchronous messaging. The Java producers fetch customers and products in batches (or pages) from the CRM and Inventory APIs, then push lightweight JSON messages into RabbitMQ; this decouples external API latency from downstream processing and allows the consumers to scale independently. For inventory export, bulk endpoints or paginated calls (e.g. 1,000 products per page with parallel page fetches) keep total export time well under **5 minutes**, while RabbitMQ easily sustains thousands of messages per second on modest hardware.
 
