@@ -165,3 +165,9 @@ In another terminal, tail the mock Analytics API logs:
 cd "Java Producers + Python Consumers"
 docker compose logs -f mock-apis
 POST /analytics/data HTTP/1.1" 202 Accepted
+
+### Scalability & Performance
+
+This integration is designed to comfortably handle **10,000+ records per hour** by combining bulk/paginated API access with asynchronous messaging. The Java producers fetch customers and products in batches (or pages) from the CRM and Inventory APIs, then push lightweight JSON messages into RabbitMQ; this decouples external API latency from downstream processing and allows the consumers to scale independently. For inventory export, bulk endpoints or paginated calls (e.g. 1,000 products per page with parallel page fetches) keep total export time well under **5 minutes**, while RabbitMQ easily sustains thousands of messages per second on modest hardware.
+
+The Python consumers run as horizontally scalable workers that read from `customer_data` and `inventory_data`, merge records in memory, enforce **idempotency** using composite keys, and send batched analytics payloads with retries. To scale to **10+ systems**, the same pattern is extended by adding topics/queues per system and, in higher‑volume environments, moving to a partitioned event bus such as **Kafka** with consumer groups. Around each external system, concerns such as **rate limiting, caching, and circuit breakers** (e.g. via an API Gateway and Resilience4j) protect upstream services and prevent cascading failures. For very large and heterogeneous landscapes, this custom pipeline can be complemented by integration platforms such as **Apache NiFi** or **MuleSoft**, which provide visual flow orchestration, centralized monitoring, and governance while still following an event‑driven architecture.
