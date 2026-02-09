@@ -75,7 +75,8 @@ Once running:
 
   <img width="1512" height="907" alt="Screenshot 2026-02-04 at 16 23 35" src="https://github.com/user-attachments/assets/1b51fb33-46f3-448e-a08f-9984774967f6" />
 
-  <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/81cc86b2-d8a1-4454-b059-bf99d29407be" />
+  <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/90ba5ace-aea4-4f33-9ccc-1892572a2abd" />
+
 
   
 - Or use simple curl calls, for example:
